@@ -5,16 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{{PROJECT}} — Status {{DATE}}</title>
 <!--
-  STATUS REPORT VIEW — template skeleton.
+  STATUS REPORT VIEW — template skeleton (interactive).
 
-  The agent fills the {{TOKENS}} below from a status report and writes a SELF-CONTAINED
+  The agent fills the {{TOKENS}} from a status report and writes a SELF-CONTAINED
   sibling file (e.g. 2026-06-25-status.html) next to the report's .md.
 
   Rules:
     - The .md report is the source of truth; this .html is a generated VIEW.
       Never hand-edit a generated report .html — regenerate it from the .md.
     - Keep everything inline (no external files) so it opens on double-click and travels as one file.
-    - Edit THIS skeleton to restyle every future report at once.
+    - Edit THIS skeleton to restyle/retune every future report at once.
 
   How to fill the tokens:
     {{PROJECT}} {{DATE}} — plain text from the report header.
@@ -22,18 +22,33 @@
         <section class="attention"><h2>Needs attention</h2>
           <ul><li><strong>M2 · Provision API keys</strong> — <span class="slip-flag">2 slips</span>: …</li></ul>
         </section>
-    {{BODY}} — one <h2> per milestone, each followed by a <table> of its items.
-        Columns: Item · Owner · Due Date · Outcome · Status · Slips · Validation
-        Wrap status text:  <span class="status open|in-progress|blocked|closed">…</span>
-        Wrap a 2+ slip count: <span class="slip-flag">…</span>
-    Theme: if project.md → Reporting names colors, override the matching :root vars before rendering —
-        accent → --accent (header rule) · flag → --flag / --flag-bg / --flag-line · statuses → --closed / --blocked / --inprog / --open.
-        Otherwise keep the defaults here.
+    {{BODY}} — one <section class="ms"> per milestone, each wrapping an <h2> then a <table>.
+        Put a SHORT milestone label in data-ms (e.g. "M2") — that's what the milestone filter chip shows.
+        <section class="ms" data-ms="M2">
+          <h2>Milestone 2 — Vendor onboarding  (target 2026-07-15)</h2>
+          <table>
+            <thead><tr><th>Item</th><th>Owner</th><th>Due Date</th><th>Outcome</th><th>Status</th><th>Slips</th><th>Validation</th></tr></thead>
+            <tbody>
+              <tr><td>…</td><td>R. Okafor</td><td>2026-07-02</td><td>…</td><td><span class="status blocked">blocked</span></td><td>1 (6/25→7/2)</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </section>
+      Keep the 7 columns in that order; wrap status in <span class="status open|in-progress|blocked|closed">.
+      The filter + sort controls are generated automatically from the rendered tables — you do NOT write them.
+
+  Theme: if project.md → Reporting names colors, override the matching :root vars before rendering —
+      accent → --accent (header rule) · flag → --flag / --flag-bg / --flag-line · statuses → --closed / --blocked / --inprog / --open.
+      Otherwise keep the defaults here.
+
+  Presets: empty by default — DO NOT pre-fill speculatively. Add one to the PRESETS array (bottom of the
+      script) only when a filter recurs in real use: { label, status:[], owner:[], milestone:[], due:'', text:'' }.
+      Each becomes a one-click button. Empty array = no buttons = a plain interactive report.
 -->
 <style>
   :root { --accent:#1a1a1a; --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; --bg:#fff;
           --flag:#b91c1c; --flag-bg:#fef2f2; --flag-line:#fecaca;
-          --closed:#16a34a; --blocked:#b91c1c; --inprog:#2563eb; --open:#6b7280; }
+          --closed:#16a34a; --blocked:#b91c1c; --inprog:#2563eb; --open:#6b7280;
+          --chip:#f3f4f6; --chip-on:#1f2937; }
   * { box-sizing:border-box; }
   body { font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
          color:var(--ink); background:#f3f4f6; margin:0; padding:32px; }
@@ -45,7 +60,9 @@
   h2 { font-size:16px; margin:28px 0 10px; }
   table { width:100%; border-collapse:collapse; margin:8px 0 22px; font-size:14px; }
   th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
-  th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  th { font-size:12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted);
+       cursor:pointer; user-select:none; white-space:nowrap; }
+  th .arrow { opacity:.5; font-size:10px; }
   .status { font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.03em; }
   .status.closed{color:var(--closed)} .status.blocked{color:var(--blocked)}
   .status.in-progress{color:var(--inprog)} .status.open{color:var(--open)}
@@ -53,9 +70,20 @@
                padding:14px 18px; margin-bottom:8px; }
   .attention h2 { color:var(--flag); margin:0 0 6px; }
   .slip-flag { color:var(--flag); font-weight:600; }
-  footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--line);
-           color:var(--muted); font-size:12px; }
-  @media print { body{background:#fff;padding:0} .page{border:0;border-radius:0} }
+  footer { margin-top:28px; padding-top:14px; border-top:1px solid var(--line); color:var(--muted); font-size:12px; }
+  /* interactive controls */
+  #controls { margin:18px 0 6px; padding:12px 14px; background:#fafafa; border:1px solid var(--line); border-radius:8px; }
+  #controls .grp { display:flex; flex-wrap:wrap; align-items:center; gap:6px; margin:4px 0; }
+  #controls .lbl { color:var(--muted); text-transform:uppercase; letter-spacing:.04em; font-size:11px; width:76px; flex:none; }
+  .chip { border:1px solid var(--line); background:var(--chip); color:var(--ink); border-radius:999px;
+          padding:3px 11px; font-size:12px; cursor:pointer; user-select:none; }
+  .chip.on { background:var(--chip-on); color:#fff; border-color:var(--chip-on); }
+  #controls .presets .chip { border-style:dashed; }
+  #controls input[type=text] { border:1px solid var(--line); border-radius:6px; padding:4px 8px; font-size:13px; min-width:160px; }
+  #controls .reset { margin-left:auto; border:1px solid var(--line); background:#fff; border-radius:6px; padding:4px 10px; font-size:12px; cursor:pointer; }
+  #summary { color:var(--muted); font-size:12px; margin:8px 2px 0; }
+  .ms.hidden, tr.hidden { display:none; }
+  @media print { body{background:#fff;padding:0} .page{border:0;border-radius:0} #controls{display:none} }
 </style>
 </head>
 <body>
@@ -67,9 +95,184 @@
 
     {{NEEDS_ATTENTION}}
 
+    <div id="controls" hidden></div>
+    <div id="summary"></div>
+
+    <div id="body">
     {{BODY}}
+    </div>
 
     <footer>Generated view of the project's status report. Source of truth is the project tracker.</footer>
   </div>
+
+<script>
+// Interactive filter/sort for the report. Operates on the rendered milestone tables.
+// PRESETS: empty by default. Add { label, status:[], owner:[], milestone:[], due:'', text:'' } only when a filter recurs.
+const PRESETS = [];
+
+(function(){
+  const COLS = { item:0, owner:1, due:2, outcome:3, status:4, slips:5, validation:6 };
+  const sections = Array.from(document.querySelectorAll('#body .ms'));
+  if (!sections.length) return;
+
+  const rows = [];
+  sections.forEach(sec => {
+    const ms = (sec.dataset.ms || (sec.querySelector('h2') || {}).textContent || '').trim();
+    sec.querySelectorAll('tbody tr').forEach(tr => {
+      const cells = tr.children;
+      const statusEl = cells[COLS.status] && cells[COLS.status].querySelector('.status');
+      rows.push({
+        tr, sec, ms,
+        owner: cell(cells, COLS.owner),
+        due: parseDate(cell(cells, COLS.due)),
+        status: (statusEl ? statusEl.textContent : cell(cells, COLS.status)).trim().toLowerCase(),
+        text: tr.textContent.toLowerCase()
+      });
+    });
+  });
+
+  const uniq = a => [...new Set(a.filter(Boolean))];
+  const statuses = uniq(rows.map(r => r.status));
+  const owners = uniq(rows.map(r => r.owner)).sort();
+  const mss = uniq(rows.map(r => r.ms));
+  const sel = { status:new Set(), owner:new Set(), milestone:new Set(), due:'', text:'' };
+
+  const c = document.getElementById('controls');
+  let textInput;
+  if (statuses.length > 1) c.appendChild(chipGroup('Status', 'status', statuses, sel.status));
+  if (owners.length > 1)   c.appendChild(chipGroup('Owner', 'owner', owners, sel.owner));
+  if (mss.length > 1)      c.appendChild(chipGroup('Milestone', 'milestone', mss, sel.milestone));
+  c.appendChild(dueGroup());
+  c.appendChild(searchGroup());
+  if (PRESETS.length) c.appendChild(presetGroup());
+  c.hidden = false;
+
+  enableSort();
+  syncChips();
+  apply();
+
+  function chipGroup(label, facet, values, set){
+    const g = grp(label);
+    values.forEach(v => {
+      const chip = el('span','chip',v);
+      chip.dataset.facet = facet; chip.dataset.val = v;
+      chip.onclick = () => { set.has(v) ? set.delete(v) : set.add(v); syncChips(); apply(); };
+      g.appendChild(chip);
+    });
+    return g;
+  }
+  function dueGroup(){
+    const g = grp('Due');
+    [['All',''],['Overdue','overdue'],['This week','week']].forEach(([label,val]) => {
+      const chip = el('span','chip',label);
+      chip.dataset.facet = 'due'; chip.dataset.val = val;
+      chip.onclick = () => { sel.due = val; syncChips(); apply(); };
+      g.appendChild(chip);
+    });
+    return g;
+  }
+  function searchGroup(){
+    const g = grp('Search');
+    textInput = document.createElement('input');
+    textInput.type = 'text'; textInput.placeholder = 'filter text…';
+    textInput.oninput = () => { sel.text = textInput.value.trim().toLowerCase(); apply(); };
+    g.appendChild(textInput);
+    const reset = el('button','reset','Reset');
+    reset.onclick = () => { sel.status.clear(); sel.owner.clear(); sel.milestone.clear();
+      sel.due=''; sel.text=''; textInput.value=''; syncChips(); apply(); };
+    g.appendChild(reset);
+    return g;
+  }
+  function presetGroup(){
+    const g = grp('Presets'); g.classList.add('presets');
+    PRESETS.forEach(p => {
+      const chip = el('span','chip',p.label || 'preset');
+      chip.onclick = () => {
+        sel.status = new Set(p.status||[]); sel.owner = new Set(p.owner||[]);
+        sel.milestone = new Set(p.milestone||[]); sel.due = p.due||''; sel.text = p.text||'';
+        if (textInput) textInput.value = sel.text;
+        syncChips(); apply();
+      };
+      g.appendChild(chip);
+    });
+    return g;
+  }
+
+  function apply(){
+    let shown = 0;
+    rows.forEach(r => {
+      const ok =
+        (sel.status.size === 0 || sel.status.has(r.status)) &&
+        (sel.owner.size === 0 || sel.owner.has(r.owner)) &&
+        (sel.milestone.size === 0 || sel.milestone.has(r.ms)) &&
+        dueOk(r.due, sel.due) &&
+        (sel.text === '' || r.text.includes(sel.text));
+      r.tr.classList.toggle('hidden', !ok);
+      if (ok) shown++;
+    });
+    sections.forEach(sec => {
+      sec.classList.toggle('hidden', sec.querySelectorAll('tbody tr:not(.hidden)').length === 0);
+    });
+    const d = describe();
+    document.getElementById('summary').textContent =
+      'Showing ' + shown + ' of ' + rows.length + ' items' + (d ? ' · ' + d : '');
+  }
+  function describe(){
+    const p = [];
+    if (sel.status.size) p.push('status: ' + [...sel.status].join(', '));
+    if (sel.owner.size) p.push('owner: ' + [...sel.owner].join(', '));
+    if (sel.milestone.size) p.push('milestone: ' + [...sel.milestone].join(', '));
+    if (sel.due) p.push('due: ' + sel.due);
+    if (sel.text) p.push('search: "' + sel.text + '"');
+    return p.join(' · ');
+  }
+  function syncChips(){
+    c.querySelectorAll('.chip[data-facet]').forEach(ch => {
+      const f = ch.dataset.facet, v = ch.dataset.val;
+      let on = false;
+      if (f === 'status') on = sel.status.has(v);
+      else if (f === 'owner') on = sel.owner.has(v);
+      else if (f === 'milestone') on = sel.milestone.has(v);
+      else if (f === 'due') on = (sel.due === v);
+      ch.classList.toggle('on', on);
+    });
+  }
+  function enableSort(){
+    document.querySelectorAll('#body table').forEach(tbl => {
+      const ths = tbl.querySelectorAll('thead th');
+      ths.forEach((th, i) => {
+        const arrow = el('span','arrow',' ↕'); th.appendChild(arrow);
+        let dir = 0;
+        th.onclick = () => {
+          dir = dir === 1 ? -1 : 1;
+          ths.forEach(o => { const a = o.querySelector('.arrow'); if (a && o !== th) a.textContent = ' ↕'; });
+          arrow.textContent = dir === 1 ? ' ↑' : ' ↓';
+          const body = tbl.querySelector('tbody');
+          Array.from(body.querySelectorAll('tr')).sort((a, b) => {
+            let x = a.children[i].textContent.trim(), y = b.children[i].textContent.trim();
+            if (i === COLS.due) { x = parseDate(x); y = parseDate(y); }
+            else if (i === COLS.slips) { x = parseInt(x) || 0; y = parseInt(y) || 0; }
+            else { x = x.toLowerCase(); y = y.toLowerCase(); }
+            return x < y ? -dir : x > y ? dir : 0;
+          }).forEach(tr => body.appendChild(tr));
+        };
+      });
+    });
+  }
+
+  function cell(cells, i){ return (cells[i] ? cells[i].textContent : '').trim(); }
+  function el(tag, cls, txt){ const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+  function grp(label){ const g = el('div','grp'); g.appendChild(el('span','lbl',label)); return g; }
+  function parseDate(s){ const d = Date.parse((s || '').trim()); return isNaN(d) ? 0 : d; }
+  function dueOk(due, mode){
+    if (!mode) return true;
+    if (!due) return false;
+    const now = Date.now(), day = 86400000;
+    if (mode === 'overdue') return due < now;
+    if (mode === 'week') return due >= now - day && due <= now + 7 * day;
+    return true;
+  }
+})();
+</script>
 </body>
 </html>
