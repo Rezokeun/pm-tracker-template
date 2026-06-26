@@ -35,6 +35,7 @@
         </section>
       Keep the 7 columns in that order; wrap status in <span class="status open|in-progress|blocked|closed">.
       The filter + sort controls are generated automatically from the rendered tables — you do NOT write them.
+      (Users hide the bar via its Hide button or the `f` key — for clean screenshots.)
 
   Theme: if project.md → Reporting names colors, override the matching :root vars before rendering —
       accent → --accent (header rule) · flag → --flag / --flag-bg / --flag-line · statuses → --closed / --blocked / --inprog / --open.
@@ -93,16 +94,17 @@
       <div class="meta"><span><strong>Status as of:</strong> {{DATE}}</span></div>
     </header>
 
+    <div id="controls" hidden></div>
+
     {{NEEDS_ATTENTION}}
 
-    <div id="controls" hidden></div>
     <div id="summary"></div>
 
     <div id="body">
     {{BODY}}
     </div>
 
-    <footer>Generated view of the project's status report. Source of truth is the project tracker.</footer>
+    <footer>Generated view of the project's status report. Source of truth is the project tracker. · Press <kbd>f</kbd> to filter &amp; sort.</footer>
   </div>
 
 <script>
@@ -145,11 +147,17 @@ const PRESETS = [];
   c.appendChild(dueGroup());
   c.appendChild(searchGroup());
   if (PRESETS.length) c.appendChild(presetGroup());
-  c.hidden = false;
+  // default hidden — the report opens as a clean status doc; press 'f' (or the footer hint) to reveal.
 
   enableSort();
   syncChips();
   apply();
+
+  // press 'f' to toggle the filter bar (clean screenshots); the bar's Hide button does the same
+  document.addEventListener('keydown', e => {
+    const t = (e.target.tagName || '').toLowerCase();
+    if (e.key === 'f' && t !== 'input' && t !== 'textarea') c.hidden = !c.hidden;
+  });
 
   function chipGroup(label, facet, values, set){
     const g = grp(label);
@@ -181,6 +189,10 @@ const PRESETS = [];
     reset.onclick = () => { sel.status.clear(); sel.owner.clear(); sel.milestone.clear();
       sel.due=''; sel.text=''; textInput.value=''; syncChips(); apply(); };
     g.appendChild(reset);
+    const hide = el('button','reset','Hide ▲');
+    hide.title = 'Hide the filter bar — press f to toggle it back';
+    hide.onclick = () => { c.hidden = true; };
+    g.appendChild(hide);
     return g;
   }
   function presetGroup(){
@@ -215,7 +227,7 @@ const PRESETS = [];
     });
     const d = describe();
     document.getElementById('summary').textContent =
-      'Showing ' + shown + ' of ' + rows.length + ' items' + (d ? ' · ' + d : '');
+      d ? ('Showing ' + shown + ' of ' + rows.length + ' items · ' + d) : '';
   }
   function describe(){
     const p = [];
