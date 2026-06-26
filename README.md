@@ -13,7 +13,7 @@ It encodes a lean, verification-driven PM method:
 - **Doer-defined outcomes, trust but verify** — the person doing the work names the *Outcome* (a signed doc, a stakeholder confirmation, a passing test). You validate it and the validation is saved. A confirmation beats a slide deck.
 - **Slips are tallied** — when a due date moves it's never silently overwritten; it's logged and counted. Two slips on one item is your signal to dig in.
 - **The log writes itself** — every change appends a dated line to the session log as a byproduct, so you get a digestible history without remembering to write one.
-- **Nothing is lost** — every raw input you provide is saved verbatim and dated in a source log, so summaries never bury the original detail.
+- **Nothing is lost** — every working session is captured verbatim in a dated transcript (your input *and* the AI's responses), so summaries never bury the original detail.
 - **Status reports are a view** — generated from the tracker and tailored to your audience; they never hold facts that aren't already tracked.
 
 ## Use it
@@ -31,7 +31,7 @@ The agent reads `CLAUDE.md` as its full briefing, so each project clone is self-
 | `project.md` | project source-of-truth: background, goal, people, timeline, reporting (the gate) |
 | `tracker.md` | the live table: milestones → weekly items, outcomes, slip tally |
 | `session-log.md` | append-only dated digest of what changed, written as a side effect |
-| `source-log.md` | append-only verbatim record of the raw input you provide (provenance) |
+| `transcripts/` | per-session verbatim transcripts of each working session (provenance) |
 | `notes.md` | operational reference (guides, variable names, contacts) |
 | `validation/` | captured validations, one per item |
 | `reports/` | dated status reports rendered from the tracker |
