@@ -23,3 +23,4 @@
 - **Audience:** <who the status report is for>
 - **Cadence:** <e.g. weekly, biweekly>
 - **Preferences:** <format / focus — what this audience actually cares about>
+- **Theme (report colors):** default. To customize, name colors for any of: accent (the header rule), flag (attention), or the statuses (closed / blocked / in-progress / open) — e.g. `accent #1f4e79 · flag #c0392b`. The agent applies them to the report on render.

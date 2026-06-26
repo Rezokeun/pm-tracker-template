@@ -26,9 +26,12 @@
         Columns: Item · Owner · Due Date · Outcome · Status · Slips · Validation
         Wrap status text:  <span class="status open|in-progress|blocked|closed">…</span>
         Wrap a 2+ slip count: <span class="slip-flag">…</span>
+    Theme: if project.md → Reporting names colors, override the matching :root vars before rendering —
+        accent → --accent (header rule) · flag → --flag / --flag-bg / --flag-line · statuses → --closed / --blocked / --inprog / --open.
+        Otherwise keep the defaults here.
 -->
 <style>
-  :root { --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; --bg:#fff;
+  :root { --accent:#1a1a1a; --ink:#1a1a1a; --muted:#6b7280; --line:#e5e7eb; --bg:#fff;
           --flag:#b91c1c; --flag-bg:#fef2f2; --flag-line:#fecaca;
           --closed:#16a34a; --blocked:#b91c1c; --inprog:#2563eb; --open:#6b7280; }
   * { box-sizing:border-box; }
@@ -36,7 +39,7 @@
          color:var(--ink); background:#f3f4f6; margin:0; padding:32px; }
   .page { max-width:920px; margin:0 auto; background:var(--bg); padding:40px 44px;
           border:1px solid var(--line); border-radius:10px; }
-  header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:24px; }
+  header { border-bottom:2px solid var(--accent); padding-bottom:16px; margin-bottom:24px; }
   h1 { font-size:22px; margin:0 0 6px; }
   .meta { color:var(--muted); font-size:13px; }
   h2 { font-size:16px; margin:28px 0 10px; }
