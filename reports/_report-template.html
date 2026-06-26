@@ -17,13 +17,13 @@
     - Edit THIS skeleton to restyle every future report at once.
 
   How to fill the tokens:
-    {{PROJECT}} {{DATE}} {{AUDIENCE}} {{CADENCE}} — plain text from project.md / the report header.
+    {{PROJECT}} {{DATE}} — plain text from the report header.
     {{NEEDS_ATTENTION}} — leave empty if no item has 2+ slips; otherwise:
         <section class="attention"><h2>Needs attention</h2>
           <ul><li><strong>M2 · Provision API keys</strong> — <span class="slip-flag">2 slips</span>: …</li></ul>
         </section>
     {{BODY}} — one <h2> per milestone, each followed by a <table> of its items.
-        Columns: Item · Owner · Proof-due · Proof point · Status · Slips · Evidence
+        Columns: Item · Owner · Due Date · Outcome · Status · Slips · Validation
         Wrap status text:  <span class="status open|in-progress|blocked|closed">…</span>
         Wrap a 2+ slip count: <span class="slip-flag">…</span>
 -->
@@ -39,7 +39,6 @@
   header { border-bottom:2px solid var(--ink); padding-bottom:16px; margin-bottom:24px; }
   h1 { font-size:22px; margin:0 0 6px; }
   .meta { color:var(--muted); font-size:13px; }
-  .meta span { margin-right:18px; }
   h2 { font-size:16px; margin:28px 0 10px; }
   table { width:100%; border-collapse:collapse; margin:8px 0 22px; font-size:14px; }
   th,td { text-align:left; padding:8px 10px; border-bottom:1px solid var(--line); vertical-align:top; }
@@ -60,18 +59,14 @@
   <div class="page">
     <header>
       <h1>{{PROJECT}}</h1>
-      <div class="meta">
-        <span><strong>Status as of:</strong> {{DATE}}</span>
-        <span><strong>For:</strong> {{AUDIENCE}}</span>
-        <span><strong>Cadence:</strong> {{CADENCE}}</span>
-      </div>
+      <div class="meta"><span><strong>Status as of:</strong> {{DATE}}</span></div>
     </header>
 
     {{NEEDS_ATTENTION}}
 
     {{BODY}}
 
-    <footer>Generated view of the status report in <code>/reports</code>. Source of truth is the project tracker.</footer>
+    <footer>Generated view of the project's status report. Source of truth is the project tracker.</footer>
   </div>
 </body>
 </html>
